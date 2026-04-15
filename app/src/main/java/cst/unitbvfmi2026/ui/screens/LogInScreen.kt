@@ -1,5 +1,6 @@
 package cst.unitbvfmi2026.ui.screens
 
+import android.R
 import android.R.attr.imeOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,20 +38,22 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cst.unitbvfmi2026.util.isValidEmail
+import cst.unitbvfmi2026.util.isValidPassword
 
 @Composable
 fun LogInScreen(
     modifier: Modifier = Modifier,
     onRegisterClick: () -> Unit = {},
-    onLoginClick: () -> Unit = {},
+    onLoginClick: (email: String, password: String) -> Unit = {_,_ -> }, //param1 , param2 empty amandoua
     isLoading: Boolean = false,
     errorMessage: String? = null
-
 
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisibility by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -76,6 +79,7 @@ fun LogInScreen(
             value = email,
             onValueChange = { newValue ->
                 email = newValue//primeste val scrisa in field
+                emailError = null
             },
             label = {
                 Text("Email")
@@ -86,6 +90,10 @@ fun LogInScreen(
                     contentDescription = null
                 )//content description ajuta la teste unitare
             },
+            isError = emailError?.let {
+                true
+            } ?: false,
+            supportingText = emailError?.let { { Text(it) } },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(
@@ -101,6 +109,7 @@ fun LogInScreen(
             value = password,
             onValueChange = { newValue ->
                 password = newValue//primeste val scrisa in field
+                passwordError = null
             },
             label = {
                 Text("Password")
@@ -111,6 +120,10 @@ fun LogInScreen(
                     contentDescription = null
                 )//content description ajuta la teste unitare
             },
+            isError = passwordError?.let {
+                true
+            } ?: false,
+            supportingText = passwordError?.let { { Text(it) } },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(
@@ -150,7 +163,20 @@ fun LogInScreen(
         )
         Button(
             {
-                onLoginClick()
+                var valid = true
+                if (!email.isValidEmail()) {
+                    emailError = "Invalid Email"
+                    valid = false
+                }
+                if(!password.isValidPassword()) {
+                    passwordError = "Invalid Password"
+                    valid = false
+                }
+                if (valid) {
+                    emailError = null
+                    passwordError = null
+                    onLoginClick(email, password)
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,12 +37,16 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cst.unitbvfmi2026.util.isValidEmail
+import cst.unitbvfmi2026.util.isValidPassword
+import kotlin.Boolean
 
 @Composable
 fun RegisterScreen(
     modifier: Modifier = Modifier,
     onLoginClick: () -> Unit = {},
-    onRegisterClick:()-> Unit= {}
+    onRegisterClick: (email: String, password: String) -> Unit = { _, _ -> },
+    isLoading: Boolean = false,
+    errorMessage: String? = null
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -102,6 +108,7 @@ fun RegisterScreen(
             value = password,
             onValueChange = { newValue ->
                 password = newValue//primeste val scrisa in field
+                passwordError = null
             },
             label = {
                 Text("Password")
@@ -112,6 +119,10 @@ fun RegisterScreen(
                     contentDescription = null
                 )//content description ajuta la teste unitare
             },
+            isError = passwordError?.let {
+                true
+            } ?: false,
+            supportingText = passwordError?.let { { Text(it) } },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(
@@ -156,11 +167,34 @@ fun RegisterScreen(
                     emailError = "Invalid Email"
                     valid = false
                 }
-                onRegisterClick()
+                if (!password.isValidPassword()) {
+                    passwordError = "Invalid Password"
+                    valid = false
+                }
+                if (valid) {
+                    emailError = null
+                    passwordError = null
+                    onRegisterClick(email, password)
+                }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoading
         ) {
-            Text("Register")
+            when (isLoading) {
+                true -> CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+
+                false -> Text("Register")
+            }
+        }
+        errorMessage?.let { error ->
+            Spacer(
+                modifier = Modifier.height(8.dp)
+
+            )
+            Text(error)
         }
         Spacer(
             modifier = Modifier.height(16.dp)

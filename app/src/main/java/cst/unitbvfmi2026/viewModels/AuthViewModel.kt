@@ -20,14 +20,17 @@ class AuthViewModel : ViewModel() {
     private val _authState = MutableStateFlow(AuthState())
     val authState: StateFlow<AuthState> = _authState
 
-    fun login(email: String, password: String) {
+    val isLoggedIn: Boolean
+        get() = auth.currentUser != null //param nu va avea o val a lui si il folosim ca intermediar pt accesarea valorii din currentUser -> pastrare incapsulare
+    //se verif sesiunea curent in Firebase daca currentUser != null
+    fun login(email: String, password: String, onSuccess: () -> Unit) {
        _authState.value= AuthState(true)
 
         auth.signInWithEmailAndPassword(email, password)
             .addOnSuccessListener {
                 Log.e("Login", "Success")
                 _authState.value= AuthState()
-
+                onSuccess()
             }
             .addOnFailureListener {error ->
                 Log.e("Login", "Failed")
@@ -36,15 +39,22 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    fun register(email: String, password: String) {
+    fun register(email: String, password: String, onSuccess: () -> Unit) {
+        _authState.value= AuthState(true)
         auth.createUserWithEmailAndPassword(email, password)
             .addOnSuccessListener {
                 Log.e("Register", "Success")
+                _authState.value= AuthState()
+                onSuccess()
             }
             .addOnFailureListener {
                 Log.e("Register", "Failed")
+                _authState.value= AuthState(errorMessage = it.message )
             }
     }
 
+    fun logout() {
+        auth.signOut()
+    }
 
 }

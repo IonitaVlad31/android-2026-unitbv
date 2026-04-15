@@ -1,12 +1,17 @@
 package cst.unitbvfmi2026.ui.navigation
 
+import android.app.Activity
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import cst.unitbvfmi2026.MainActivity
+import cst.unitbvfmi2026.ui.screens.HomeScreen
 import cst.unitbvfmi2026.ui.screens.LogInScreen
 import cst.unitbvfmi2026.ui.screens.RegisterScreen
 import cst.unitbvfmi2026.viewModels.AuthViewModel
@@ -18,17 +23,26 @@ fun AuthenticationNavigation(
 ){
     val navController=rememberNavController()
     val authState by authViewModel.authState.collectAsState()
+    val navigateToHome: () -> Unit = {
+        navController.navigate("homeScreen") {
+            popUpTo("login") {
+                inclusive =
+                    true // necesar pt inchidere login} //popUpTo = inchide login la parasire
+            }
+        }
+    }//= {} pt ca e param de tip lambda func si il ia default
+    val startDestination = if (authViewModel.isLoggedIn) "homeScreen" else "login"
     NavHost (
         navController= navController,
-        startDestination = "login"
+        startDestination = startDestination
     ){
         composable("login") {
             LogInScreen(
                 onRegisterClick = {
                     navController.navigate("register")
                 },
-                onLoginClick = {
-                    authViewModel.login("tesxt@test.com","000000")
+                onLoginClick = { email, password ->
+                    authViewModel.login(email, password, navigateToHome)
                 },
                 isLoading = authState.isLoading,
                 errorMessage = authState.errorMessage
@@ -40,12 +54,24 @@ fun AuthenticationNavigation(
                 onLoginClick = {
                     navController.popBackStack()
                 },
-                onRegisterClick = {
-                    authViewModel.register("test@test.com","000000")
-                }
-
+                onRegisterClick = { email, password ->
+                    authViewModel.register(email, password, navigateToHome)
+                },
+                isLoading = authState.isLoading,
+                errorMessage = authState.errorMessage
             )
         }
+        composable("homeScreen") {
+            //HomeScreen(authViewModel::logout)//referinta catre logout din AuthViewModel, care are aceeasi semnatura => nu mai trebuie declarata alta functie lambda pt asta
+            val context = LocalContext.current//definit de componenta in care se afla authNav
+            HomeScreen{
+                authViewModel.logout()
+                val intent = Intent(context, MainActivity::class.java)
+                (context as? Activity)?.apply { //cast ca sa ne asiguram ca context-ul este o activitate; as? = daca crapa cast-ul, return null => nu se apeleaza apply
+                    this.startActivity(intent)//this = val care s-a accesat cu succes inaintea instructiunii de apply; porneste activ pe baza intentului definit
+                    this.finish()//distruge activ curenta pt a nu ramane in backstack
+                }
+            }
+        }
     }
-
 }
