@@ -38,6 +38,7 @@ android {
 	}
 	buildFeatures {
 		compose = true
+		buildConfig = true //face un fisier singur cu propr proiect, propr precum: ver aplic, ver code, env in care rulam + config lui (debug / release)
 	}
 }
 

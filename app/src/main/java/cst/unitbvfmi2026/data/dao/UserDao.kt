@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import cst.unitbvfmi2026.data.entities.UserEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDao {
@@ -13,7 +14,7 @@ interface UserDao {
     suspend fun insert(user: UserEntity)
 
     @Query("SELECT * FROM users")
-    fun getAll(): List<UserEntity>
+    fun getAll(): Flow<List<UserEntity>>
 
     @Query("SELECT * FROM users WHERE id = :id")//:id = parametru din functie
     fun getById(id: Long): UserEntity?

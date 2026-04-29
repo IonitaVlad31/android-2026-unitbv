@@ -23,7 +23,7 @@ fun AuthenticationNavigation(
 
 ){
     val navController=rememberNavController()
-    val authState by authViewModel.authState.collectAsState()
+    val authState by authViewModel.authState.collectAsState()//state-ul ajuta la actualiz UI-ului la modif param respectiv
     val navigateToHome: () -> Unit = {
         navController.navigate("homeScreen") {
             popUpTo("login") {
